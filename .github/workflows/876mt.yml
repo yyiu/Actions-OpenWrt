@@ -105,7 +105,7 @@ jobs:
         run: |
           cd openwrt/bin/targets/*/*
           rm -rf packages
-#           echo "::set-env name=FIRMWARE::$(pwd)"
+          echo "::set-output name=FIRMWARE::$(pwd)"
 
       - name: Upload firmware 上传固件
         uses: actions/upload-artifact@master
