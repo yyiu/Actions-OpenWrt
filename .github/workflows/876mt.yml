@@ -12,7 +12,7 @@ name: OpenWrt-JHR-AC876MT-CI
 env:
   #==========================
   # 编译前运行的脚本
-  DIY_SH: diy02.sh
+  DIY_SH: diy.sh
   #==========================
   # Specify here the OpenWrt Repo URL and Branch
   # 在这里指定你的OpenWrt的仓库地址URL和分支
