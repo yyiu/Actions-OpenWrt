@@ -21,14 +21,14 @@ env:
   #==========================
   # Specify here your config file
   # 在这里指定你的配置文件名
-  CONFIG_FILE: ".config"
+  CONFIG_FILE: "876mt.config"
   #==========================
   GITEE_TOKEN: ${{ secrets.gitee }}
 on:
   push:
     paths:
       #==========================
-      - ".config"
+      - "876mt.config"
       # 改成和上方CONFIG_FILE 一样
       # 这个配置文件修改后确发编译
       #==========================
