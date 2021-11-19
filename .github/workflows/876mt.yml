@@ -111,7 +111,8 @@ jobs:
         uses: actions/upload-artifact@master
         with:
           name: OpenWrt_firmware openwrt固件
-          path: ${{ env.FIRMWARE }}
+          path: openwrt/bin
+#           path: ${{ env.FIRMWARE }}
 
       # - name: upload to gitee 传到码云
         # run: |
