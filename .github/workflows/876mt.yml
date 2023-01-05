@@ -28,7 +28,6 @@ on:
     types: [started]
 #==========================
  
-#==========================
 env:
   #==========================
   # 编译前运行的脚本
@@ -56,6 +55,7 @@ env:
   UPLOAD_WETRANSFER: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
+  #==========================
 
 jobs:
   build:
