@@ -8,7 +8,7 @@ on:
   push:
     paths:
       #==========================
-      - "876m.config"
+      - "876mt.config"
       # 改成和上方CONFIG_FILE 一样
       # 这个配置文件修改后确发编译
       #==========================
@@ -29,6 +29,7 @@ on:
 #==========================
  
 #==========================
+env:
   #==========================
   # 编译前运行的脚本
   # DIY_P1_SH: 
@@ -43,7 +44,6 @@ on:
   # 在这里指定你的配置文件名
   # CONFIG_FILE: "876mt.config"
   #==========================
-env:
   REPO_URL: https://github.com/coolsnowwolf/lede.git
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
@@ -56,6 +56,7 @@ env:
   UPLOAD_WETRANSFER: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
+
 jobs:
   build:
     runs-on: ubuntu-20.04
