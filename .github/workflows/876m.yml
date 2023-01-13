@@ -2,7 +2,7 @@
 
 #==========================
 # 工作流的名字（随便写）
-name: OpenWrt-JHR-AC876MT-CI
+name: OpenWrt-JHR-AC876M-CI
 
 on:
   push:
