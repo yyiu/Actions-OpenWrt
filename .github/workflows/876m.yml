@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout 抓取当前仓库
+    - name: Checkout 抓取当前仓 库
       uses: actions/checkout@main
 
     - name: Initialization environment
