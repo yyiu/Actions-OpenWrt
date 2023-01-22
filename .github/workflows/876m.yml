@@ -1,92 +1,74 @@
-# By JiaJiaXd 2021-2022
 
-#==========================
-# 工作流的名字（随便写）
-name: OpenWrt-JHR-AC876M-CI
+#
+# Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
+#
+# This is free software, licensed under the MIT License.
+# See /LICENSE for more information.
+#
+# https://github.com/P3TERX/Actions-OpenWrt
+# Description: Build OpenWrt using GitHub Actions
+#
+
+name: Build OpenWrt
 
 on:
-  push:
-    paths:
-      #==========================
-      - "876m.config"
-      # 改成和上方CONFIG_FILE 一样
-      # 这个配置文件修改后确发编译
-      #==========================
-    branches:
-      - master
-  #==========================
-  #取消下方注释 = 发布release就编译
-  release:
-    types: [published]
-  #==========================
-  #取消下方注释 = 每天凌晨4点编译
-  # schedule:
-  #   - cron: 0 20 * * *
-#==========================
-#取消下方注释 = 点[★star]一键编译
-  watch:
-    types: [started]
-#==========================
- 
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+
 env:
-  #==========================
-  # 编译前运行的脚本
-  # DIY_P1_SH: 
-  # DIY_P2_SH: 
-  #==========================
-  # Specify here the OpenWrt Repo URL and Branch
-  # 在这里指定你的OpenWrt的仓库地址URL和分支
-  # REPO_URL: 
-  # REPO_BRANCH: 
-  #==========================
-  # Specify here your config file
-  # 在这里指定你的配置文件名
-  # CONFIG_FILE: "876mt.config"
-  #==========================
-  REPO_URL: https://github.com/coolsnowwolf/lede.git
+  REPO_URL: https://github.com/yyiu/lede.git
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
-  CONFIG_FILE: 876m.config
+  CONFIG_FILE: .config
   DIY_P1_SH: diy-part1.sh
   DIY_P2_SH: diy-part2.sh
-  UPLOAD_BIN_DIR: true
+  UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_COWTRANSFER: false
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
-  #==========================
 
 jobs:
   build:
     runs-on: ubuntu-20.04
 
     steps:
-    - name: Checkout 抓取当前仓 库
+    - name: Checkout
       uses: actions/checkout@main
 
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
         sudo -E apt-get -qq update
+        sudo -E apt-get -qq install $(curl -fsSL git.io/depends-ubuntu-2004)
         sudo -E apt-get -qq autoremove --purge
         sudo -E apt-get -qq clean
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
+
     - name: Clone source code
       working-directory: /workdir
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
+
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
 
@@ -100,6 +82,7 @@ jobs:
         chmod +x $DIY_P2_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P2_SH
+
     - name: SSH connection to Actions
       uses: P3TERX/ssh2actions@v1.0.0
       if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
@@ -111,10 +94,12 @@ jobs:
       id: package
       run: |
         cd openwrt
+        export FORCE_UNSAFE_CONFIGURE=1
         make defconfig
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
+
     - name: Compile the firmware
       id: compile
       run: |
@@ -124,10 +109,11 @@ jobs:
         export FORCE_UNSAFE_CONFIGURE=1
         echo -e "$(nproc) thread compile"
         make -j$(nproc) V=s || make -j$(nproc) || make -j1 || make -j1 V=s
-        echo "status=success" >> $GITHUB_OUTPUT
+        echo "::set-output name=status::success"
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
     - name: Check space usage
       if: (!cancelled())
       run: df -hT
@@ -146,7 +132,8 @@ jobs:
         cd openwrt/bin/targets/*/*
         rm -rf packages
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "status=success" >> $GITHUB_OUTPUT
+        echo "::set-output name=status::success"
+
     - name: Upload firmware directory
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
@@ -161,7 +148,8 @@ jobs:
         curl -fsSL git.io/file-transfer | sh
         ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
         echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
-        echo "url=$(cat cowtransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_OUTPUT
+        echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+
     - name: Upload firmware to WeTransfer
       id: wetransfer
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
@@ -169,39 +157,39 @@ jobs:
         curl -fsSL git.io/file-transfer | sh
         ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-        echo "url=$(cat wetransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_OUTPUT
+        echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
+
     - name: Generate release tag
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "::set-output name=release_tag::$(date +"%Y.%m.%d-%H%M")"
         touch release.txt
-        echo "如果您觉得好用，请点亮右上角的Star！" >> release.txt
-        [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 国内高速：[不一定可以使用][奶牛快传](${{ steps.cowtransfer.outputs.url }})" >> release.txt
-        [ $UPLOAD_WETRANSFER = true ] && echo "🔗 国内高速：[WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
-        echo "status=success" >> $GITHUB_OUTPUT
-        
+        [ $UPLOAD_COWTRANSFER = true ] && echo "🔗 [Cowtransfer](${{ steps.cowtransfer.outputs.url }})" >> release.txt
+        [ $UPLOAD_WETRANSFER = true ] && echo "🔗 [WeTransfer](${{ steps.wetransfer.outputs.url }})" >> release.txt
+        echo "::set-output name=status::success"
+
     - name: Upload firmware to release
-      uses: ncipollo/release-action@v1.11.1
-      #if: steps.tag.outputs.status == 'success' && !cancelled() &&!contains(needs.check.outputs.status, 'failure')
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        commit: "main"
-        tag: ${{ steps.tag.outputs.release_tag }}
-        token: ${{ secrets.token_release }}
-        bodyFile: release.txt
-        artifacts: ${{ env.FIRMWARE }}/*
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*
 
-#    - name: Delete workflow runs
- #     uses: GitRML/delete-workflow-runs@main
- #     with:
- #       retain_days: 1
-  #      keep_minimum_runs: 3
+    - name: Delete workflow runs
+      uses: GitRML/delete-workflow-runs@main
+      with:
+        retain_days: 1
+        keep_minimum_runs: 3
 
-#- name: Remove old Releases
-#      uses: dev-drprasad/delete-older-releases@v0.1.0
-#      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-#      with:
-#        keep_latest: 3
-#        delete_tags: true
-#      env:
-#       GITHUB_TOKEN: ${{ secrets.token_release }}
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        keep_latest: 3
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
