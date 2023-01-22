@@ -190,7 +190,7 @@ jobs:
         tag: ${{ steps.tag.outputs.release_tag }}
         token: ${{ secrets.token_release }}
         bodyFile: release.txt
-        artifacts: ${{ env.FIRMWARE }}/*
+        artifacts: ${{ env.FIRMWARE }}/* 
 
 #    - name: Delete workflow runs
  #     uses: GitRML/delete-workflow-runs@main
