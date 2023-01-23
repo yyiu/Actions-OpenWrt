@@ -36,7 +36,7 @@ on:
 #==========================
 
 env:
-  REPO_URL: https://codeload.github.com/coolsnowwolf/lede/zip/refs/tags/20221001
+  REPO_URL: https://github.com/coolsnowwolf/lede.git
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
