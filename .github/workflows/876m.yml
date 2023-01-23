@@ -36,7 +36,7 @@ on:
 #==========================
 
 env:
-  REPO_URL: https://github.com/coolsnowwolf/lede/releases/tag/20221001
+  REPO_URL: https://codeload.github.com/coolsnowwolf/lede/zip/refs/tags/20221001
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: .config
@@ -74,8 +74,11 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
-        ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        # git clone $REPO_URL -b $REPO_BRANCH openwrt
+        curl -LjO https://github.com/coolsnowwolf/lede/archive/refs/tags/20221001.zip
+        unzip 20221001.zip
+        # ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
+        ln -sf /workdir/lede-20221001 $GITHUB_WORKSPACE/openwrt
 
     - name: Load custom feeds
       run: |
