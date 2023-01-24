@@ -112,6 +112,7 @@ jobs:
       id: package
       run: |
         cd openwrt
+        ll
         export FORCE_UNSAFE_CONFIGURE=1
         make defconfig
         make download -j$(nproc)
