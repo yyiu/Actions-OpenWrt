@@ -1,4 +1,3 @@
-
 #
 # Copyright (c) 2019-2020 P3TERX <https://p3terx.com>
 #
@@ -9,7 +8,8 @@
 # Description: Build OpenWrt using GitHub Actions
 #
 
-name: Build OpenWrt
+#==========================
+name: OpenWrt-JHR-AC876M-CI
 
 on:
   push:
@@ -48,6 +48,7 @@ env:
   UPLOAD_WETRANSFER: false
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
+  #==========================
 
 jobs:
   build:
