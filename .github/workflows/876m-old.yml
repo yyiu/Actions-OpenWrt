@@ -80,7 +80,7 @@ jobs:
         export lede=20221001
         curl -LjO https://github.com/coolsnowwolf/lede/archive/refs/tags/$lede.zip
         unzip $lede.zip
-        # mv lede-20221001 openwrt
+        # mv lede-20230609 openwrt
         mv lede-$lede openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
