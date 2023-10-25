@@ -36,7 +36,7 @@ on:
 #==========================
 
 env:
-  REPO_URL: https://github.com/istoreos/istoreos.git
+  REPO_URL: https://github.com/coolsnowwolf/lede/tree/20230609
   REPO_BRANCH: master
   FEEDS_CONF: feeds.conf.default
   CONFIG_FILE: 876m-n.config
