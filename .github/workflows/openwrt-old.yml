@@ -9,7 +9,7 @@
 #
 
 #==========================
-name: OpenWrt-JHR-AC876M-N-CI
+name: OpenWrt-JHR-AC876M-N-CI-old
 
 on:
   push:
